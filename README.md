@@ -29,7 +29,9 @@ The workflow follows a modern CI/CD pattern:
 
 Check out the engine in action!
 
-https://github.com/user-attachments/assets/2d6a528f-a5a9-435e-ad03-4543dbef3c60
+
+https://github.com/user-attachments/assets/d1ab6bc4-c618-4c34-b8b4-99d579b5c17d
+
 
 ### **Walkthrough Highlights:**
 * **Real-time Configuration**: Toggling Algorithms and Balancing Strategies.
