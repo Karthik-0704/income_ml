@@ -86,15 +86,28 @@ async def predict_income(request: IncomePredictionRequest):
     if request.mode not in RUN_IDS:
         raise HTTPException(status_code=400, detail="Invalid model mode.")
 
-    # Trigger the model swap/load
     load_specific_model(request.mode)
 
     try:
-        # Convert incoming JSON to DataFrame for the sklearn pipeline
-        input_df = pd.DataFrame(request.data)
-        predictions = loaded_model.predict(input_df)
+        df = pd.DataFrame(request.data)
         
-        # Map binary 0/1 back to human-readable labels
+        # --- ADD THESE TRANSFORMATIONS TO MATCH TRAINING ---
+        # 1. Marital & Tax Combo
+        df["marital_tax_combo"] = (df["marital stat"].astype(str) + "__" + df["tax filer stat"].astype(str))
+        
+        # 2. Veteran Affiliation
+        df["veteran_affiliation"] = (df["veterans benefits"].astype(str) + "__" + df["fill inc questionnaire for veteran's admin"].astype(str))
+        
+        # 3. Class & Business Combo
+        mapped_business = df["own business or self employed"].map({0: "Not_in_universe", 1: "Yes", 2: "No"}).astype(str)
+        df["class_business_combo"] = (df["class of worker"].astype(str) + "__" + mapped_business)
+
+        # Ensure all columns match the model's expected list
+        # The ColumnTransformer in your pipeline will handle the rest!
+        # ---------------------------------------------------
+
+        predictions = loaded_model.predict(df)
+        
         results = [
             {"row_index": i, "prediction": ">$50k" if pred == 1 else "<$50k"} 
             for i, pred in enumerate(predictions)
@@ -102,6 +115,6 @@ async def predict_income(request: IncomePredictionRequest):
         return {"status": "success", "engine": request.mode, "predictions": results}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Inference Error: {str(e)}")
-
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
