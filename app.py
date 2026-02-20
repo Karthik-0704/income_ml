@@ -4,6 +4,7 @@ import mlflow
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
+import uvicorn
 
 # 1. Configure MLflow credentials
 os.environ["MLFLOW_TRACKING_USERNAME"] = "skarthiksubramanian0704"
@@ -68,3 +69,7 @@ async def predict_income(request: IncomePredictionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+if __name__ == "__main__":
+    # This tells the script to start the server on port 8000 when executed
+    uvicorn.run(app, host="0.0.0.0", port=8000)
