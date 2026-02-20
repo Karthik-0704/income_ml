@@ -27,7 +27,7 @@ The workflow follows a modern CI/CD pattern:
 
 ## 🎥 Product Demo
 
-Check out the engine in action! This video demonstrates the full-stack integration between the Streamlit frontend and the AWS-hosted inference engine.
+Check out the engine in action!
 
 https://github.com/user-attachments/assets/2d6a528f-a5a9-435e-ad03-4543dbef3c60
 
