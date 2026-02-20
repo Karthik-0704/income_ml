@@ -48,13 +48,14 @@ jobs:
           docker rm census-api-container || true
           
           # 3. Run the new container mapping port 8000
-          # We use --restart always to ensure the API comes back up if the EC2 reboots
+          # We use --restart always to ensure the API comes back up if the EC2 reboots          
           docker run -d \
             --name census-api-container \
-            --restart always \
             -p 8000:8000 \
+            -e MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }} \
+            -e DAGSHUB_TOKEN=${{ secrets.DAGSHUB_TOKEN }} \
             ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
-          
+      
           # 4. Clean up old images to save disk space on your t2.small
           docker image prune -af
 
