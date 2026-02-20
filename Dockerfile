@@ -1,16 +1,17 @@
-# Use a slim image to save disk space on EC2
 FROM python:3.10-slim
 
-# Set environment variables to optimize Python performance
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-cache \
+# Combine update and install, fix the flag, and clean up in one layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# ... rest of your file (COPY, pip install, etc.)
 
 # Copy requirements first for better caching
 COPY requirements.txt .
