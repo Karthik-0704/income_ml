@@ -103,9 +103,10 @@ if st.button("Run Prediction", type="primary"):
         }
         
         with st.spinner(f"Requesting {algo_choice} Inference..."):
-            # Replace with your EC2 Public IP once ready!
-            response = requests.post("http://127.0.0.1:8000/predict", json=api_payload)
-            
+            # Fetch the URL from Streamlit Secrets
+            BACKEND_URL = st.secrets["API_URL"] 
+            response = requests.post(f"{BACKEND_URL}/predict", json=api_payload)
+
         if response.status_code == 200:
             result = response.json()
             st.success("Analysis Complete")
