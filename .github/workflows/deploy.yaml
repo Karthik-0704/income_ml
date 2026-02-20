@@ -27,6 +27,7 @@ jobs:
         with:
           context: .
           push: true
+          # Using v1.0 as requested
           tags: ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
 
   # ==========================================
@@ -35,22 +36,32 @@ jobs:
   continuous-deployment:
     name: Pull & Run on EC2
     needs: continuous-delivery
-    runs-on: self-hosted # <--- Routes the job to your listening EC2 instance
+    runs-on: self-hosted
     steps:
       - name: Deploy Docker Container
         run: |
-          # Since this script is executing natively ON your EC2 instance, 
-          # we just run the standard Docker CLI commands.
+          # 1. Pull the newly delivered image
+          docker pull ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
           
-          # 1. Pull the newly delivered image from Docker Hub
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
+          # 2. Stop and remove the old running container if it exists
+          docker stop census-api-container || true
+          docker rm census-api-container || true
           
-          # 2. Stop and remove the old running container (if it exists)
-          sudo docker stop census-api-container || true
-          sudo docker rm census-api-container || true
+          # 3. Run the new container mapping port 8000
+          # We use --restart always to ensure the API comes back up if the EC2 reboots
+          docker run -d \
+            --name census-api-container \
+            --restart always \
+            -p 8000:8000 \
+            ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
           
-          # 3. Run the new container, exposing port 8000
-          sudo docker run -d --name census-api-container -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/census-api:v1.0
-          
-          # 4. Clean up old dangling images to preserve your free-tier disk space
-          sudo docker image prune -af
+          # 4. Clean up old images to save disk space on your t2.small
+          docker image prune -af
+
+      - name: API Health Check
+        run: |
+          # Wait 10 seconds for the models to begin loading
+          sleep 10
+          # Ping the root or docs to see if the server is up
+          curl --fail http://localhost:8000/docs || exit 1
+          echo "Deployment successful: API is reachable!"
